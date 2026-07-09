@@ -1,0 +1,91 @@
+#include <cstdio>
+#include <optional>
+#include <print>
+#include <span>
+#include <string>
+#include <string_view>
+#include <vector>
+
+#include "src/commands.hpp"
+#include "src/literals.hpp"
+#include "src/utils.hpp"
+
+
+constexpr std::string_view VERSION_STRING { "gojo version 1.0.0-beta" };
+
+// TODO:
+// documentation generator like doxygen or hdoc?
+// custom allocator instead of default to avoid a bunch of small allocs for strings?
+int main(const int argc, const char* argv[]) {
+  if (argc == 1) {
+    std::println(literals::WIN,
+                 utils::CLEAR,
+                 utils::MAGENTA_BOLD,
+                 utils::MAGENTA);
+    commands::help();
+    return 0;
+  }
+
+  std::vector<std::string_view> args_vec(argv, argv + argc);  // NOLINT
+  std::span<std::string_view> args { args_vec };
+
+  // Remove gojo <command> from argument list.
+  args = args.subspan(2);
+
+  const std::string_view command { args_vec.at(1) };
+  std::optional<std::string> result { std::nullopt };
+
+  if (command == "init") {
+    result = commands::init(args);
+  }
+  else if (command == "build") {
+    result = commands::build(args);
+  }
+  else if (command == "run") {
+    result = commands::run(args);
+  }
+  else if (command == "test") {
+    result = commands::test(args);
+  }
+  else if (command == "clean") {
+    commands::clean(args);
+  }
+  else if (command == "fmt") {
+    result = commands::fmt(args);
+  }
+  else if (command == "check") {
+    result = commands::check(args);
+  }
+  else if (command == "template") {
+    result = commands::file_template(args);
+  }
+  else if (command == "refresh") {
+    result = commands::refresh(args, std::nullopt);
+  }
+  else if (command == "install") {
+    result = commands::install(args);
+  }
+  else if (command == "profile") {
+    result = commands::profile(args);
+  }
+  else if (command == "info") {
+    commands::info();
+  }
+  else if (command == "help") {
+    commands::help();
+  }
+  else if (command == "--version") {
+    std::println(VERSION_STRING);
+  }
+  else {
+    std::println(stderr, RED("[Error]: command not recognized: 'gojo {}'"), command);
+  }
+
+  if (result.has_value()) {
+    std::println(stderr, RED("[Error]: {}"), result.value());
+    std::println(stderr, YELLOW("see gojo {} --help for more info"), command);
+    return 1;
+  }
+
+  return 0;
+}
