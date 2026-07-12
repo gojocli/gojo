@@ -52,8 +52,6 @@ jobs:
 
     - name: Set up conan client
       uses: conan-io/setup-conan@v1
-      with:
-        conan-version: '2.*'
 
     - name: Install conan dependencies
       run: >
