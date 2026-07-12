@@ -286,8 +286,7 @@ config::GojoConfig init_interactive() {
   // clang-tidy flags the language standards and the case numbers as
   // magic numbers.
   // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
-  success = false;
-  do {
+  while (!success) {
     std::print(MAGENTA("\nEnter the project target:")
               "\n\n\t1. " CYAN("binary")
                 "\n\t2. " CYAN("library")"\n\n\t");
@@ -305,7 +304,8 @@ config::GojoConfig init_interactive() {
         std::println(RED("\noption not recognized: {}"), num_choice);
         break;
     }
-  } while (!success);
+  }
+  success = false;
 
   if (!cfg.is_library) {
     std::print(MAGENTA("Enter the main executable name: "));
@@ -313,8 +313,7 @@ config::GojoConfig init_interactive() {
     std::getline(std::cin >> std::ws, cfg.project_name);
   }
 
-  success = false;
-  do {
+  while (!success) {
     std::print(
       MAGENTA("\nEnter the language you want to use for your project:")
               "\n\n\t1. " CYAN("C++")
@@ -333,11 +332,11 @@ config::GojoConfig init_interactive() {
         std::println(RED("\noption not recognized: {}"), num_choice);
         break;
     }
-  } while (!success);
+  }
+  success = false;
 
   if (cfg.project_lang == "C++") {
-    success = false;
-    do {
+    while (!success) {
       std::print(MAGENTA("\nEnter the C++ standard you want to use:")
                 "\n\n\t1. " CYAN("C++23")
                   "\n\t2. " CYAN("C++20")
@@ -370,10 +369,10 @@ config::GojoConfig init_interactive() {
           std::println(RED("\noption not recognized: {}"), num_choice);
           break;
       }
-    } while (!success);
-
+    }
     success = false;
-    do {
+
+    while (!success) {
       std::print(MAGENTA("\nEnter the C++ compiler you want to use:")
                 "\n\n\t1. " CYAN("system default")
                   "\n\t2. " CYAN("clang++")
@@ -396,10 +395,11 @@ config::GojoConfig init_interactive() {
           std::print("\noption not recognized: {}\n", num_choice);
           break;
       }
-    } while (!success);
-  } else {
+    }
     success = false;
-    do {
+  }
+  else {
+    while (!success) {
       std::print(MAGENTA("\nEnter the C standard you want to use:")
                 "\n\n\t1. " CYAN("C23")
                   "\n\t2. " CYAN("C17")
@@ -427,10 +427,10 @@ config::GojoConfig init_interactive() {
           std::println(RED("\noption not recognized: {}"), num_choice);
           break;
       }
-    } while (!success);
-
+    }
     success = false;
-    do {
+
+    while (!success) {
       std::print(MAGENTA("\nEnter the C compiler you want to use:")
                 "\n\n\t1. " CYAN("system default")
                   "\n\t2. " CYAN("clang")
@@ -453,11 +453,11 @@ config::GojoConfig init_interactive() {
           std::print("\noption not recognized: {}\n", num_choice);
           break;
       }
-    } while (!success);
+    }
+    success = false;
   } // if lang == C++
 
-  success = false;
-  do {
+  while (!success) {
     std::print(MAGENTA("\nDo you want to use GNU extensions? ")
                CYAN("[y/n] "));
     std::cin >> char_choice;
@@ -474,7 +474,8 @@ config::GojoConfig init_interactive() {
         std::println(RED("\noption not recognized: {}"), char_choice);
         break;
     }
-  } while (!success);
+  }
+  success = false;
 
 
   std::print(MAGENTA("\nEnter flags to be passed to the compiler "
@@ -483,8 +484,7 @@ config::GojoConfig init_interactive() {
 
   // TODO: Implement Meson
   /*
-  success = false;
-  do {
+  while (!success) {
     std::print("\nEnter the build system you want to use:\n\n\t1. CMake\n\t2. Meson\n\n\t");
     std::cin >> num_choice;
     switch (num_choice) {
@@ -500,11 +500,11 @@ config::GojoConfig init_interactive() {
         std::println(RED("\noption not recognized: {}"), num_choice);
         break;
     }
-  } while (!success);
+  }
+  success = false;
   */
 
-  success = false;
-  do {
+  while (!success) {
     std::print(MAGENTA("\nEnter the CMake generator system you want to use:")
               "\n\n\t1. " CYAN("system default")
                 "\n\t2. " CYAN("Ninja")
@@ -527,10 +527,10 @@ config::GojoConfig init_interactive() {
         std::println(RED("\noption not recognized: {}"), num_choice);
         break;
     }
-  } while (!success);
-
+  }
   success = false;
-  do {
+
+  while (!success) {
     std::print(MAGENTA("\nEnter the package manager you want to use:")
               "\n\n\t1. " CYAN("none")
                 "\n\t2. " CYAN("conan")
@@ -553,11 +553,11 @@ config::GojoConfig init_interactive() {
         std::println(RED("\noption not recognized: {}"), num_choice);
         break;
     }
-  } while (!success);
+  }
+  success = false;
 
   if (cfg.project_lang == "C++") {
-    success = false;
-    do {
+    while (!success) {
       std::print(MAGENTA("\nEnter the source file extension you want to use:")
                 "\n\n\t1. " CYAN("cpp")
                   "\n\t2. " CYAN("cc")
@@ -585,10 +585,10 @@ config::GojoConfig init_interactive() {
           std::println(RED("\noption not recognized: {}"), num_choice);
           break;
       }
-    } while (!success);
-
+    }
     success = false;
-    do {
+
+    while (!success) {
       std::print(MAGENTA("\nEnter the header file extension you want to use:")
                 "\n\n\t1. " CYAN("hpp")
                   "\n\t2. " CYAN("h")
@@ -616,15 +616,15 @@ config::GojoConfig init_interactive() {
           std::println(RED("\noption not recognized: {}"), num_choice);
           break;
       }
-    } while (!success);
-  }
+    }
+    success = false;
+  }  // if
   else if (cfg.project_lang == "C") {
     cfg.src_ext = "c";
     cfg.hdr_ext = "h";
   }
 
-  success = false;
-  do {
+  while (!success) {
     std::print(MAGENTA("\nEnter the clang format style you want to use:")
               "\n\n\t1. " CYAN("Google")
                 "\n\t2. " CYAN("LLVM")
@@ -672,10 +672,10 @@ config::GojoConfig init_interactive() {
         std::println(RED("\noption not recognized: {}"), num_choice);
         break;
     }
-  } while (!success);
-
+  }
   success = false;
-  do {
+
+  while (!success) {
     std::print(MAGENTA("\nDo you want to use clangd? ") CYAN("[y/n] "));
     std::cin >> char_choice;
     switch (char_choice) {
@@ -691,10 +691,10 @@ config::GojoConfig init_interactive() {
         std::println(RED("\noption not recognized: {}"), char_choice);
         break;
     }
-  } while (!success);
-
+  }
   success = false;
-  do {
+
+  while (!success) {
     std::print(MAGENTA("\nDo you want to use clang-tidy? ") CYAN("[y/n] "));
     std::cin >> char_choice;
     switch (char_choice) {
@@ -710,10 +710,10 @@ config::GojoConfig init_interactive() {
         std::println(RED("\noption not recognized: {}"), char_choice);
         break;
     }
-  } while (!success);
-
+  }
   success = false;
-  do {
+
+  while (!success) {
     std::print(MAGENTA("\nDo you want to use cppcheck? ") CYAN("[y/n] "));
     std::cin >> char_choice;
     switch (char_choice) {
@@ -729,10 +729,10 @@ config::GojoConfig init_interactive() {
         std::println(RED("\noption not recognized: {}"), char_choice);
         break;
     }
-  } while (!success);
-
+  }
   success = false;
-  do {
+
+  while (!success) {
     std::print(MAGENTA("\nDo you want to enable tests? ") CYAN("[y/n] "));
     std::cin >> char_choice;
     switch (char_choice) {
@@ -748,13 +748,12 @@ config::GojoConfig init_interactive() {
         std::println(RED("\noption not recognized: {}"), char_choice);
         break;
     }
-  } while (!success);
+  }
+  success = false;
 
   if (cfg.testing_enabled) {
-
     if (cfg.project_lang == "C++") {
-      success = false;
-      do {
+      while (!success) {
         std::print(MAGENTA("\nDo you want to use GoogleTest for unit tests? "
                            "(must have a package manager enabled) ") 
                            CYAN("[y/n] "));
@@ -772,11 +771,11 @@ config::GojoConfig init_interactive() {
             std::println(RED("\noption not recognized: {}"), char_choice);
             break;
         }
-      } while (!success);
+      }
+      success = false;
     }
     else if (cfg.project_lang == "C") {
-      success = false;
-      do {
+      while (!success) {
         std::print(MAGENTA("\nDo you want to use Unity for unit tests? "
                            "(must have a package manager enabled) ") 
                            CYAN("[y/n] "));
@@ -794,12 +793,12 @@ config::GojoConfig init_interactive() {
             std::println(RED("\noption not recognized: {}"), char_choice);
             break;
         }
-      } while (!success);
-    }
-  }
+      }
+      success = false;
+    }  // if
+  }  // if
 
-  success = false;
-  do {
+  while (!success) {
     std::print(MAGENTA("\nDo you want to create a git repo? ") CYAN("[y/n] "));
     std::cin >> char_choice;
     switch (char_choice) {
@@ -815,7 +814,8 @@ config::GojoConfig init_interactive() {
         std::println(RED("\noption not recognized: {}"), char_choice);
         break;
     }
-  } while (!success);
+  }
+  success = false;
   // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
   std::println();
