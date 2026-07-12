@@ -27,7 +27,6 @@ constexpr std::array<std::string_view, 3> COMPILERS_CPP { "system default", "cla
 constexpr std::array<std::string_view, 3> COMPILERS_C   { "system default", "clang", "gcc" };
 constexpr std::array<std::string_view, 1> BUILD_SYSTEMS { "CMake" };
 constexpr std::array<std::string_view, 26> GENERATORS {
-
   // Unix Makefiles for Linux, MacOS, Visual Studio X for Windows
   "system default",
 
@@ -76,7 +75,6 @@ constexpr std::array<std::string_view, 1> SRC_EXTS_C   { "c" };
 constexpr std::array<std::string_view, 4> HDR_EXTS_CPP { "hpp", "h", "hxx", "h++" };
 constexpr std::array<std::string_view, 1> HDR_EXTS_C   { "h" };
 constexpr std::array<std::string_view, 8> FMT_STYLES {
-
   "google",
   "llvm",
   "chromium",
@@ -87,9 +85,9 @@ constexpr std::array<std::string_view, 8> FMT_STYLES {
   "custom"
 };
 
-constexpr std::array<std::string_view, 2> TEST_CPP     { "GoogleTest", "none" };
-constexpr std::array<std::string_view, 2> TEST_C       { "Unity", "none" };
-constexpr std::array<std::string_view, 2> TRUE_FALSE   { "true", "false" };
+constexpr std::array<std::string_view, 2> TEST_CPP   { "GoogleTest", "none" };
+constexpr std::array<std::string_view, 2> TEST_C     { "Unity", "none" };
+constexpr std::array<std::string_view, 2> TRUE_FALSE { "true", "false" };
 
 // Config file labels.
 constexpr std::string_view PROJECT_NAME   { "project name" };
@@ -119,6 +117,9 @@ constexpr std::string_view TESTS          { "testing enabled" };
 constexpr std::string_view TEST_FW        { "testing framework" };
 constexpr std::string_view GIT            { "git repository" };
 
+// This is probably the worst part of the whole project. It's very hard
+// to read this and check that each {} corresponds to the right label
+// and field.
 constexpr std::string_view cfg_file_template {
 R"(---
 # Gojo config file
@@ -187,7 +188,8 @@ R"(---
 # Options: true, false
 {}={}
 
-# Options: warning, style, performance, portability, information, unusedFunction, missingInclude, all
+# Options: warning, style, performance, portability, information,
+#          unusedFunction, missingInclude, all
 # Note: any of the above options can be combined in a comma separated list
 # Ex: warning,portability,missingInclude
 {}={}

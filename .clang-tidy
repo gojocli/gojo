@@ -6,6 +6,7 @@
 #
 # See the whole list of available checks here:
 # https://clang.llvm.org/extra/clang-tidy/checks/list.html
+#
 Checks: >
   -*,
   bugprone-*,
@@ -14,9 +15,7 @@ Checks: >
   -modernize-use-trailing-return-type,
   performance-*,
   cppcoreguidelines-*,
-  -cppcoreguidelines-avoid-magic-numbers,
   -cppcoreguidelines-macro-usage,
-  -cppcoreguidelines-avoid-do-while,
   misc-*
 #
 # Set any of the checks above to be treated as errors instead of warnings.

@@ -5,6 +5,7 @@
 #include <string_view>
 
 #include "src/config.hpp"
+#include "src/utils.hpp"
 
 
 namespace {
@@ -37,7 +38,8 @@ R"(cmake_minimum_required(VERSION {0})
 
 project({1})
 
-# Export compilation information for clangd, .clang-tidy, .clang-format, and cppcheck
+# Export compilation information for
+# clangd, .clang-tidy, .clang-format, and cppcheck
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Add dependencies here, ex:
@@ -219,6 +221,7 @@ std::string source_file(const config::GojoConfig& cfg) {
 
   // This might be the most convoluted, fucked up control statement
   // block I've ever written...
+  // Maybe I should split this up into several functions?
   if (cfg.is_library) {
     if (cfg.project_lang == "C++") {
       str = std::format(
@@ -253,7 +256,7 @@ const char* hello_world(void) {{
   } // is_library
   else {
     if (cfg.project_lang == "C++") {
-      if (cfg.lang_standard >= 23) {
+      if (cfg.lang_standard >= utils::STD23) {
         str =
 R"(#include <print>
 
@@ -498,7 +501,9 @@ std::string clangd(const config::GojoConfig& cfg) {
     compilation_db = std::format("{}/build", cfg.project_root);
   }
   else {
-    compilation_db = std::format("{}/build/{}", cfg.project_root, cfg.build_type);
+    compilation_db = std::format("{}/build/{}",
+                                 cfg.project_root,
+                                 cfg.build_type);
   }
 
   return std::format(
@@ -579,8 +584,8 @@ HeaderFilterRegex: '{1}'
 # Turns on colors in the terminal output.
 UseColor: true
 )",
-    checks,
-    header_filter  // {0}
+    checks,        // {0}
+    header_filter  // {1}
   );
 }
 

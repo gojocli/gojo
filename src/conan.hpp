@@ -22,17 +22,16 @@ struct Profile {
   std::string other_settings;
 };
 
-// This function is probably not needed.
-// std::optional<std::string> init(const config::GojoConfig& cfg);
-
 
 std::optional<std::string> install(const config::GojoConfig& cfg);
 
 
-std::expected<Profile, std::string> read_profile(std::string_view profile_name);
+std::expected<Profile, std::string>
+read_profile(std::string_view profile_name);
 
 
-std::optional<std::string> write_profile(const Profile& profile, const config::GojoConfig& cfg);
+std::optional<std::string> write_profile(const Profile& profile,
+                                         const config::GojoConfig& cfg);
 
 }  // namespace conan
 

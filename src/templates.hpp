@@ -34,9 +34,6 @@ std::string clangtidy(const config::GojoConfig& cfg);
 
 std::string conanfile(const config::GojoConfig& cfg);
 
-
-// TODO: Implement vcpkg.
-
 }  // namespace templates
 
 #endif

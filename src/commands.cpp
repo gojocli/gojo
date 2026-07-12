@@ -6,6 +6,7 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <optional>
 #include <print>
 #include <span>
@@ -74,7 +75,9 @@ create_files(const config::GojoConfig& cfg) {
   const std::filesystem::path root { cfg.project_root };
   if (!std::filesystem::exists(root)) {
     if (!std::filesystem::create_directories(root)) {
-      return std::unexpected { std::format("failed to create directory: {}", root.string()) };
+      return std::unexpected {
+        std::format("failed to create directory: {}", root.string())
+      };
     }
   }
 
@@ -205,8 +208,11 @@ std::optional<std::string> write_to_files(const config::GojoConfig& cfg) {
 
   if (cfg.fmt_style != "custom") {
     std::filesystem::current_path(cfg.project_root);
-    std::string command = std::format("clang-format -style={} -dump-config", cfg.fmt_style);
-    files.clang_format << utils::execute_command(command, true, true).output << std::flush;
+    std::string command {
+      std::format("clang-format -style={} -dump-config", cfg.fmt_style)
+    };
+    files.clang_format << utils::execute_command(command, true, true).output
+                       << std::flush;
   }
 
   if (cfg.clangd_enabled) {
@@ -264,15 +270,22 @@ config::GojoConfig init_interactive() {
   // Read in any extra whitespace the user may have entered.
   std::getline(std::cin >> std::ws, cfg.project_name);
 
-  std::print(MAGENTA("\nEnter the relative path where the project should be created: "));
+  std::print(
+    MAGENTA("\nEnter the relative path where the project should be created: ")
+  );
   std::getline(std::cin >> std::ws, cfg.project_root);
 
   if (cfg.project_root == ".") {
     cfg.project_root = std::filesystem::current_path().string();
   } else {
-    cfg.project_root = std::format("{}/{}", std::filesystem::current_path().string(), cfg.project_root);
+    cfg.project_root = std::format("{}/{}",
+                                   std::filesystem::current_path().string(),
+                                   cfg.project_root);
   }
 
+  // clang-tidy flags the language standards and the case numbers as
+  // magic numbers.
+  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
   success = false;
   do {
     std::print(MAGENTA("\nEnter the project target:")
@@ -302,7 +315,8 @@ config::GojoConfig init_interactive() {
 
   success = false;
   do {
-    std::print(MAGENTA("\nEnter the language you want to use for your project:")
+    std::print(
+      MAGENTA("\nEnter the language you want to use for your project:")
               "\n\n\t1. " CYAN("C++")
                 "\n\t2. " CYAN("C")"\n\n\t");
     std::cin >> num_choice;
@@ -444,7 +458,8 @@ config::GojoConfig init_interactive() {
 
   success = false;
   do {
-    std::print(MAGENTA("\nDo you want to use GNU extensions? ") CYAN("[y/n] "));
+    std::print(MAGENTA("\nDo you want to use GNU extensions? ")
+               CYAN("[y/n] "));
     std::cin >> char_choice;
     switch (char_choice) {
       case 'y':
@@ -462,7 +477,8 @@ config::GojoConfig init_interactive() {
   } while (!success);
 
 
-  std::print(MAGENTA("\nEnter flags to be passed to the compiler (these can be edited later): "));
+  std::print(MAGENTA("\nEnter flags to be passed to the compiler "
+                     "(these can be edited later): "));
   std::getline(std::cin >> std::ws, cfg.compiler_flags);
 
   // TODO: Implement Meson
@@ -478,10 +494,6 @@ config::GojoConfig init_interactive() {
         break;
       case 2:
         settings.build_system = "Meson";
-        success = true;
-        break;
-      case 0:
-        settings.build_system = "CMake";
         success = true;
         break;
       default:
@@ -743,7 +755,9 @@ config::GojoConfig init_interactive() {
     if (cfg.project_lang == "C++") {
       success = false;
       do {
-        std::print(MAGENTA("\nDo you want to use GoogleTest for unit tests? (must have a package manager enabled) ") CYAN("[y/n] "));
+        std::print(MAGENTA("\nDo you want to use GoogleTest for unit tests? "
+                           "(must have a package manager enabled) ") 
+                           CYAN("[y/n] "));
         std::cin >> char_choice;
         switch (char_choice) {
           case 'y':
@@ -763,7 +777,9 @@ config::GojoConfig init_interactive() {
     else if (cfg.project_lang == "C") {
       success = false;
       do {
-        std::print(MAGENTA("\nDo you want to use Unity for unit tests? (must have a package manager enabled) ") CYAN("[y/n] "));
+        std::print(MAGENTA("\nDo you want to use Unity for unit tests? "
+                           "(must have a package manager enabled) ") 
+                           CYAN("[y/n] "));
         std::cin >> char_choice;
         switch (char_choice) {
           case 'y':
@@ -800,6 +816,7 @@ config::GojoConfig init_interactive() {
         break;
     }
   } while (!success);
+  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
   std::println();
   return cfg;
@@ -817,13 +834,6 @@ void clean_build_dir(const config::GojoConfig& cfg) {
 
 namespace commands {
 
-// args
-// <name>           supply a name for the project to be created in the
-//                  current working directory.
-// --file           create project from a .gojo config file.
-// --lib            sets project to be a library, discarded for -i or -f.
-// --lang=<lang>    sets project language to be C or C++.
-// --profile=<name> create project from a profile
 std::optional<std::string> init(std::span<std::string_view> args) {
   if (args.empty()) {
     return std::make_optional("gojo init: missing name argument");
@@ -833,13 +843,13 @@ std::optional<std::string> init(std::span<std::string_view> args) {
 
   for (const auto arg : args) {
     if (arg == "-f" || arg == "--file") {
-      auto res {
+      auto result {
         config::read_from_file(std::filesystem::current_path() / CONFIG_FILE)
       };
-      if (!res.has_value()) {
-        return std::make_optional(std::move(res.error()));
+      if (!result.has_value()) {
+        return std::make_optional(std::move(result.error()));
       }
-      cfg = std::move(res.value());
+      cfg = std::move(result.value());
       break;
     }
     else if (arg == "-i") {
@@ -873,11 +883,18 @@ std::optional<std::string> init(std::span<std::string_view> args) {
           "gojo init --lang: argument not recognized: {}\n"
           "\targument must be 'c' or 'c++'"
         };
-        return std::make_optional(std::format(fmt_str, arg.substr(7)));
+        
+        // Length of "--lang=".
+        constexpr std::size_t lang_arg_len { 7 };
+        return std::make_optional(
+          std::format(fmt_str, arg.substr(lang_arg_len))
+        );
       }
     }
     else if (arg.starts_with("--profile=")) {
-      std::string_view profile_name { arg.substr(10) };
+      // length of "--profile=".
+      constexpr std::size_t profile_arg_len { 10 };
+      std::string_view profile_name { arg.substr(profile_arg_len) };
       auto result { config::read_profile(profile_name) };
       if (!result.has_value()) {
         if (result.error().starts_with("file not found")) {
@@ -926,10 +943,9 @@ std::optional<std::string> init(std::span<std::string_view> args) {
 
   // init conan
   if (cfg.pkg_manager == "conan") {
-    // auto conan_res { conan::init(cfg) };
-    auto conan_res { conan::install(cfg) };
-    if (conan_res.has_value()) {
-      return conan_res;
+    auto conan_result { conan::install(cfg) };
+    if (conan_result.has_value()) {
+      return conan_result;
     }
   }
   if (cfg.pkg_manager == "vcpkg") {
@@ -938,9 +954,9 @@ std::optional<std::string> init(std::span<std::string_view> args) {
 
   // init cmake
   if (cfg.build_system == "CMake") {
-    auto cmake_res { cmake::configure(cfg) };
-    if (cmake_res.has_value()) {
-      return cmake_res;
+    auto cmake_result { cmake::configure(cfg) };
+    if (cmake_result.has_value()) {
+      return cmake_result;
     }
   }
   if (cfg.build_system == "Meson") {
@@ -950,8 +966,8 @@ std::optional<std::string> init(std::span<std::string_view> args) {
   if (cfg.git_repo) {
     std::filesystem::current_path(cfg.project_root);
     std::string cmd { "git init" };
-    auto git_res { utils::execute_command(cmd) };
-    if (!git_res.success) {
+    auto git_result { utils::execute_command(cmd) };
+    if (!git_result.success) {
       return std::make_optional("failed to initialize git repoistory");
     }
   }
@@ -960,19 +976,13 @@ std::optional<std::string> init(std::span<std::string_view> args) {
 }
 
 
-// args
-// --release
-// --debug
-// --no-tests
-// --clean
-// --target
 std::optional<std::string> build(std::span<std::string_view> args) {
-  auto config_res { config::read_from_file(CONFIG_FILE) };
-  if (!config_res.has_value()) {
-    return std::make_optional(std::move(config_res.error()));
+  auto config_result { config::read_from_file(CONFIG_FILE) };
+  if (!config_result.has_value()) {
+    return std::make_optional(std::move(config_result.error()));
   }
 
-  config::GojoConfig cfg { std::move(config_res.value()) };
+  config::GojoConfig cfg { std::move(config_result.value()) };
 
   std::string_view target {};
   bool clean { false };
@@ -982,7 +992,7 @@ std::optional<std::string> build(std::span<std::string_view> args) {
     if (arg == "--release") {
       if (cfg.build_type == "Debug") {
         cfg.build_type = "Release";
-        if (!cfg.multi_config || cfg.pkg_manager == "conan") {
+        if (!cfg.multi_config) {
           reconfigure = true;
         }
       }
@@ -990,7 +1000,7 @@ std::optional<std::string> build(std::span<std::string_view> args) {
     else if (arg == "--debug") {
       if (cfg.build_type == "Release") {
         cfg.build_type = "Debug";
-        if (!cfg.multi_config || cfg.pkg_manager == "conan") {
+        if (!cfg.multi_config) {
           reconfigure = true;
         }
       }
@@ -1011,7 +1021,9 @@ std::optional<std::string> build(std::span<std::string_view> args) {
       clean = true;
     }
     else if (arg.starts_with("--target=")) {
-      target = arg.substr(9);
+      // Length of "--target="
+      constexpr std::size_t target_arg_len { 9 };
+      target = arg.substr(target_arg_len);
     }
     else if (arg == "--help") {
       std::println(literals::BUILD_HELP,
@@ -1031,9 +1043,9 @@ std::optional<std::string> build(std::span<std::string_view> args) {
 
   if (reconfigure) {
     if (cfg.build_system == "CMake") {
-      auto conf_res { cmake::configure(cfg, true) };
-      if (conf_res.has_value()) {
-        return conf_res;
+      auto conf_result { cmake::configure(cfg, true) };
+      if (conf_result.has_value()) {
+        return conf_result;
       }
     }
 
@@ -1041,16 +1053,16 @@ std::optional<std::string> build(std::span<std::string_view> args) {
       // TODO: Implement Meson
     }
 
-    auto write_res { config::write_to_file(cfg) };
-    if (write_res.has_value()) {
-      return write_res;
+    auto write_result { config::write_to_file(cfg) };
+    if (write_result.has_value()) {
+      return write_result;
     };
   } // config
 
   if (cfg.build_system == "CMake") {
-    auto build_res { cmake::build(cfg, target, clean) };
-    if (build_res.has_value()) {
-      return build_res;
+    auto build_result { cmake::build(cfg, target, clean) };
+    if (build_result.has_value()) {
+      return build_result;
     }
   } // CMake
 
@@ -1099,8 +1111,8 @@ std::optional<std::string> run(std::span<std::string_view> args) {
   }
 
   std::filesystem::current_path(cfg.project_root);
-  auto cmd_res { utils::execute_command(cmd) };
-  if (!cmd_res.success) {
+  auto cmd_result { utils::execute_command(cmd) };
+  if (!cmd_result.success) {
     return std::make_optional(
       std::format("failed to run {} executable", cfg.executable_name)
     );
@@ -1114,7 +1126,9 @@ std::optional<std::string> test(std::span<std::string_view> args) {
   std::string target {};
   for (const auto arg : args) {
     if (arg.starts_with("--target=")) {
-      target = std::format("-R \"{}\"", arg.substr(9));
+      // Length of "--target="
+      constexpr std::size_t target_arg_len { 9 };
+      target = std::format("-R \"{}\"", arg.substr(target_arg_len));
     }
     else if (arg == "--help") {
       std::println(literals::TEST_HELP,
@@ -1170,8 +1184,8 @@ std::optional<std::string> test(std::span<std::string_view> args) {
   std::string cmd {
     std::format("ctest {} {}", build_type, target)
   };
-  auto cmd_res { utils::execute_command(cmd) };
-  if (!cmd_res.success) {
+  auto cmd_result { utils::execute_command(cmd) };
+  if (!cmd_result.success) {
     return std::make_optional("failed to run tests");
   }
 
@@ -1240,7 +1254,9 @@ std::optional<std::string> fmt(std::span<std::string_view> args) {
 
   for (const auto arg : args) {
     if (arg.starts_with("--style=")) {
-      style = arg.substr(8);
+      // Length of "--style="
+      constexpr std::size_t style_arg_len { 8 };
+      style = arg.substr(style_arg_len);
     }
     else if (arg == "--help") {
       std::println(literals::FMT_HELP,
@@ -1269,8 +1285,8 @@ std::optional<std::string> fmt(std::span<std::string_view> args) {
       std::format("clang-format -style={} -dump-config > .clang-format", style)
     };
     std::filesystem::current_path(cfg.project_root);
-    auto cmd_res { utils::execute_command(cmd, true, true) };
-    if (!cmd_res.success) {
+    auto cmd_result { utils::execute_command(cmd, true, true) };
+    if (!cmd_result.success) {
       return std::make_optional(
         std::format("gojo fmt: style not recognized: {}", style)
       );
@@ -1294,8 +1310,8 @@ std::optional<std::string> fmt(std::span<std::string_view> args) {
   };
 
   std::filesystem::current_path(cfg.project_root);
-  auto cmd_res { utils::execute_command(cmd) };
-  if (!cmd_res.success) {
+  auto cmd_result { utils::execute_command(cmd) };
+  if (!cmd_result.success) {
     return std::make_optional("failed to format");
   }
 
@@ -1385,8 +1401,8 @@ std::optional<std::string> check(std::span<std::string_view> args) {
                   cfg.clang_tidy_args) // {3}
     };
     std::filesystem::current_path(cfg.project_root);
-    auto cmd_res { utils::execute_command(cmd, true, !verbose) };
-    if (!cmd_res.success) {
+    auto cmd_result { utils::execute_command(cmd, true, !verbose) };
+    if (!cmd_result.success) {
       return std::make_optional("failed clang-tidy checks");
     }
   }
@@ -1394,11 +1410,11 @@ std::optional<std::string> check(std::span<std::string_view> args) {
   if (cfg.cppcheck_enabled) {
     int lang_standard { cfg.lang_standard };
     std::string_view lang {};
-    if (cfg.project_lang == "C++" && cfg.lang_standard > 20) {
-      lang_standard = 20;
+    if (cfg.project_lang == "C++" && cfg.lang_standard > utils::STD20) {
+      lang_standard = utils::STD20;
       lang = "c++";
-    } else if (cfg.project_lang == "C" && cfg.lang_standard > 11) {
-      lang_standard = 11;
+    } else if (cfg.project_lang == "C" && cfg.lang_standard > utils::STD11) {
+      lang_standard = utils::STD11;
       lang = "c";
     }
 
@@ -1421,8 +1437,8 @@ std::optional<std::string> check(std::span<std::string_view> args) {
                   cfg.cppcheck_args)   // {5}
     };
     std::filesystem::current_path(cfg.project_root);
-    auto cmd_res { utils::execute_command(cmd, true, verbose) };
-    if (!cmd_res.success) {
+    auto cmd_result { utils::execute_command(cmd, true, verbose) };
+    if (!cmd_result.success) {
       return std::make_optional("failed cppcheck checks");
     }
   }
@@ -1489,9 +1505,9 @@ std::optional<std::string> refresh(std::span<std::string_view> args,
 
   if (cfg.build_system == "CMake") {
     cfg.multi_config = config::is_multi_config(cfg.generator);
-    auto cfg_res = cmake::configure(cfg, reconfigure);
-    if (cfg_res.has_value()) {
-      return cfg_res;
+    auto cfg_result { cmake::configure(cfg, reconfigure) };
+    if (cfg_result.has_value()) {
+      return cfg_result;
     }
 
     return config::write_to_file(cfg);
@@ -1536,10 +1552,9 @@ std::optional<std::string> install(std::span<std::string_view> args) {
   clean_build_dir(cfg);
 
   if (cfg.pkg_manager == "conan") {
-    // auto conan_res = conan::init(cfg);
-    auto conan_res { conan::install(cfg) };
-    if (conan_res.has_value()) {
-      return conan_res;
+    auto conan_result { conan::install(cfg) };
+    if (conan_result.has_value()) {
+      return conan_result;
     }
   } // conan
 
@@ -1573,6 +1588,9 @@ std::optional<std::string> profile(std::span<std::string_view> args) {
     if (args.size() > 2) {
       return std::make_optional("gojo profile create: too many arguments");
     }
+    // clang tidy doesn't like the use of unchecked access in containers.
+    // There is literally no other way to access std::span in C++23.
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
     auto result { config::create_profile(args[1]) };
     if (result.has_value()) {
       return result;
@@ -1583,7 +1601,7 @@ std::optional<std::string> profile(std::span<std::string_view> args) {
       return std::make_optional("gojo profile list: too many arguments");
     }
     // list files in ~/.gojocli/profiles
-    std::filesystem::path profiles { utils::get_profiles_dir() };
+    const std::filesystem::path profiles { utils::get_profiles_dir() };
     for (const auto& profile : std::filesystem::directory_iterator{profiles}) {
       std::println("{}", profile.path().filename().string());
     }
@@ -1595,8 +1613,12 @@ std::optional<std::string> profile(std::span<std::string_view> args) {
     if (args.size() > 2) {
       return std::make_optional("gojo profile show: too many arguments");
     }
-    std::string_view name { args[1] };
-    std::filesystem::path profiles { utils::get_profiles_dir() };
+
+    // clang tidy doesn't like the use of unchecked access in containers.
+    // There is literally no other way to access std::span in C++23.
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+    const std::string_view name { args[1] };
+    const std::filesystem::path profiles { utils::get_profiles_dir() };
 
     std::ifstream profile_stream { profiles / name };
     if (!profile_stream.is_open()) {
@@ -1618,8 +1640,12 @@ std::optional<std::string> profile(std::span<std::string_view> args) {
     if (args.size() > 2) {
       return std::make_optional("gojo profile delete: too many arguments");
     }
-    std::string_view name { args[1] };
-    std::filesystem::path profiles { utils::get_profiles_dir() };
+
+    // clang tidy doesn't like the use of unchecked access in containers.
+    // There is literally no other way to access std::span in C++23.
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+    const std::string_view name { args[1] };
+    const std::filesystem::path profiles { utils::get_profiles_dir() };
 
     if (name == "all") {
       // delete all current profiles

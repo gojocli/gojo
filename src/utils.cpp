@@ -4,9 +4,10 @@
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
-#include <_stdio.h>
 #include <cstdlib>
+#include <format>
 #include <print>
+#include <_stdio.h>
 #include <string>
 #include <string_view>
 

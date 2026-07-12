@@ -29,24 +29,24 @@ std::optional<std::string> setup_profiles(const config::GojoConfig& cfg) {
   };
   if (!std::filesystem::exists(default_profile)) {
     std::string cmd { "conan profile detect --force" };
-    const auto res { utils::execute_command(cmd) };
-    if (!res.success) {
+    const auto result { utils::execute_command(cmd) };
+    if (!result.success) {
       return std::make_optional("failed to detect conan profile");
     }
   }
 
-  auto read_res { conan::read_profile("default") };
-  if (!read_res.has_value()) {
-    return std::make_optional(std::move(read_res.error()));
+  auto read_result { conan::read_profile("default") };
+  if (!read_result.has_value()) {
+    return std::make_optional(std::move(read_result.error()));
   }
 
   // Read default profile and create new profile based on a combination
-  // of the default and the GojoConfig, ensuring the same compiler, build mode,
-  // and language standard are used for both.
-  const conan::Profile profile { read_res.value() };
-  auto write_res { write_profile(profile, cfg) };
-  if (write_res.has_value()) {
-    return write_res;
+  // of the default and the GojoConfig, ensuring the same compiler,
+  // build mode, and language standard are used for both.
+  const conan::Profile profile { read_result.value() };
+  auto write_result { write_profile(profile, cfg) };
+  if (write_result.has_value()) {
+    return write_result;
   }
 
   return std::nullopt;
@@ -55,37 +55,24 @@ std::optional<std::string> setup_profiles(const config::GojoConfig& cfg) {
 
 std::optional<std::string> get_compiler_version(std::string_view compiler) {
   std::string cmd { std::format("{} -dumpversion", compiler) };
-  auto res { utils::execute_command(cmd, true, true) };
-  if (!res.success) {
+  auto result { utils::execute_command(cmd, true, true) };
+  if (!result.success) {
     return std::nullopt;
   }
 
   // Return the major version number without any decimals.
-  auto idx { res.output.find_first_of('.') };
+  auto idx { result.output.find_first_of('.') };
   if (idx == std::string::npos) {
     // No decimals included in the string.
-    return res.output;
+    return result.output;
   }
 
-  return res.output.substr(0, idx);
+  return result.output.substr(0, idx);
 }
 
 }  // namespace
 
 namespace conan {
-
-// This function is probably not needed.
-/*
-std::optional<std::string> init(const config::GojoConfig& cfg) {
-  auto result { setup_profiles(cfg) };
-  if (result.has_value()) {
-    return result;
-  }
-
-  return install(cfg);
-}
-*/
-
 
 std::optional<std::string> install(const config::GojoConfig& cfg) {
   const std::filesystem::path profile_file {
@@ -117,13 +104,13 @@ std::optional<std::string> install(const config::GojoConfig& cfg) {
   std::fflush(stdout);
 
   std::filesystem::current_path(cfg.project_root);
-  auto dbg_res { utils::execute_command(cmd_dbg) };
-  if (!dbg_res.success) {
+  auto dbg_result { utils::execute_command(cmd_dbg) };
+  if (!dbg_result.success) {
     return std::make_optional("failed to install conan dependencies");
   }
 
-  auto rel_res { utils::execute_command(cmd_rel) };
-  if (!rel_res.success) {
+  auto rel_result { utils::execute_command(cmd_rel) };
+  if (!rel_result.success) {
     return std::make_optional("failed to install conan dependencies");
   }
 
@@ -221,27 +208,33 @@ std::optional<std::string> write_profile(const Profile& profile,
     );
   }
 
-  // Need to chop off the '++' for conan, only gcc and clang are valid compilers,
-  // though they refer to the C++ versions (g++ and clang++) when compiling C++
-  // libraries.
-  // TODO: Let user decide compiler version ?
+  // Need to chop off the '++' for conan, only gcc and clang are valid
+  // compilers, though they refer to the C++ versions (g++ and clang++)
+  // when compiling C++ libraries.
   std::string_view compiler { profile.compiler };
   std::string_view compiler_version { profile.compiler_version };
+
+  // Yeah there's some repetition here but I think it's better than two
+  // nested if branches.
   if (cfg.compiler.starts_with("clang")) {
     compiler = "clang";
-    auto cv_res { get_compiler_version(cfg.compiler) };
-    if (!cv_res.has_value()) {
-      return std::make_optional(std::format("failed to find compiler: {}", cfg.compiler));
+    auto cv_result { get_compiler_version(cfg.compiler) };
+    if (!cv_result.has_value()) {
+      return std::make_optional(
+        std::format("failed to find compiler: {}", cfg.compiler)
+      );
     }
-    compiler_version = cv_res.value();
+    compiler_version = cv_result.value();
   }
   if (cfg.compiler.starts_with("g")) {
     compiler = "gcc";
-    auto cv_res { get_compiler_version(cfg.compiler) };
-    if (!cv_res.has_value()) {
-      return std::make_optional(std::format("failed to find compiler: {}", cfg.compiler));
+    auto cv_result { get_compiler_version(cfg.compiler) };
+    if (!cv_result.has_value()) {
+      return std::make_optional(
+        std::format("failed to find compiler: {}", cfg.compiler)
+      );
     }
-    compiler_version = cv_res.value();
+    compiler_version = cv_result.value();
   }
 
   const bool is_cpp { cfg.project_lang == "C++" };
@@ -260,15 +253,17 @@ compiler.libcxx={5}
 copmiler.version={6}
 os={7}
 {8})",
-      profile.arch,
-      cfg.build_type,
-      compiler,
-      is_cpp ? "compiler.cppstd" : "compiler.cstd",
-      lang_std,
-      profile.lib,
-      compiler_version,
-      profile.os,
-      profile.other_settings)
+      profile.arch,            // {0}
+      cfg.build_type,          // {1}
+      compiler,                // {2}
+      is_cpp ?                 // {3}
+      "compiler.cppstd" :
+      "compiler.cstd",
+      lang_std,                // {4}
+      profile.lib,             // {5}
+      compiler_version,        // {6}
+      profile.os,              // {7}
+      profile.other_settings)  // {8}
   };
 
   profile_stream << updated_profile << std::flush;

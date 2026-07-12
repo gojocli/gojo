@@ -92,7 +92,9 @@ std::optional<std::string> configure(const config::GojoConfig& cfg,
 }
 
 
-std::optional<std::string> build(const config::GojoConfig& cfg, std::string_view target, bool clean) {
+std::optional<std::string> build(const config::GojoConfig& cfg,
+                                 std::string_view target,
+                                 bool clean) {
   std::string build_target {};
   if (!target.empty()) {
     build_target = std::format("--target {}", target);
@@ -124,14 +126,17 @@ std::optional<std::string> build(const config::GojoConfig& cfg, std::string_view
   auto result { utils::execute_command(cmd) };
 
   if (!result.success) {
-    return std::make_optional(std::format("failed to build project {}", cfg.project_name));
+    return std::make_optional(
+      std::format("failed to build project {}", cfg.project_name));
   }
 
   auto end { std::chrono::system_clock::now() };
   const std::chrono::duration<float> total_time { end - begin };
 
   std::fflush(stdout);
-  std::println(GREEN("\nSuccessfully built in {} seconds"), total_time.count());
+  std::println(
+    GREEN("\nSuccessfully built in {} seconds"), total_time.count()
+  );
   return std::nullopt;
 }
 

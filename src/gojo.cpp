@@ -13,9 +13,6 @@
 
 constexpr std::string_view VERSION_STRING { "gojo version 1.0.0-beta" };
 
-// TODO:
-// documentation generator like doxygen or hdoc?
-// custom allocator instead of default to avoid a bunch of small allocs for strings?
 int main(const int argc, const char* argv[]) {
   if (argc == 1) {
     std::println(literals::WIN,
@@ -26,7 +23,11 @@ int main(const int argc, const char* argv[]) {
     return 0;
   }
 
-  std::vector<std::string_view> args_vec(argv, argv + argc);  // NOLINT
+  // clang-tidy doesn't like pointer arithmetic, but this is the only
+  // way to construct the vector. Also, I don't think pointer arithmetic
+  // is that bad...
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+  std::vector<std::string_view> args_vec(argv, argv + argc);
   std::span<std::string_view> args { args_vec };
 
   // Remove gojo <command> from argument list.
@@ -78,7 +79,9 @@ int main(const int argc, const char* argv[]) {
     std::println(VERSION_STRING);
   }
   else {
-    std::println(stderr, RED("[Error]: command not recognized: 'gojo {}'"), command);
+    std::println(stderr,
+                 RED("[Error]: command not recognized: 'gojo {}'"),
+                 command);
   }
 
   if (result.has_value()) {

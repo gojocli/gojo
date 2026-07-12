@@ -13,17 +13,22 @@
 
 namespace utils {
 
-constexpr std::string RED { "\033[0;31m" };
-constexpr std::string_view RED_BOLD { "\033[1;31m" };
-constexpr std::string_view GREEN { "\033[0;32m" };
-constexpr std::string_view GREEN_BOLD { "\033[1;32m" };
-constexpr std::string_view YELLOW { "\033[0;33m" };
-constexpr std::string_view YELLOW_BOLD { "\033[1;33m" };
-constexpr std::string_view MAGENTA { "\033[0;35m" };
+constexpr std::string RED               { "\033[0;31m" };
+constexpr std::string_view RED_BOLD     { "\033[1;31m" };
+constexpr std::string_view GREEN        { "\033[0;32m" };
+constexpr std::string_view GREEN_BOLD   { "\033[1;32m" };
+constexpr std::string_view YELLOW       { "\033[0;33m" };
+constexpr std::string_view YELLOW_BOLD  { "\033[1;33m" };
+constexpr std::string_view MAGENTA      { "\033[0;35m" };
 constexpr std::string_view MAGENTA_BOLD { "\033[1;35m" };
-constexpr std::string_view CYAN { "\033[0;36m" };
-constexpr std::string_view CYAN_BOLD { "\033[1;36m" };
-constexpr std::string CLEAR { "\033[0m" };
+constexpr std::string_view CYAN         { "\033[0;36m" };
+constexpr std::string_view CYAN_BOLD    { "\033[1;36m" };
+constexpr std::string CLEAR             { "\033[0m" };
+
+constexpr int STD11 { 11 };
+constexpr int STD20 { 20 };
+constexpr int STD23 { 23 };
+
 
 struct CommandResult {
   std::string output;
@@ -43,6 +48,7 @@ std::string to_lower(std::string_view str);
 
 
 const std::string_view get_home_dir();
+
 
 const std::string get_profiles_dir();
 
