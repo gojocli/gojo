@@ -34,11 +34,11 @@ jobs:
             cpp_compiler: clang++
         exclude:
           - os: windows-latest
-            cpp_compiler: cl
-          - os: windows-latest
-            cpp_compiler: g++
-          - os: windows-latest
-            cpp_compiler: clang++
+            #cpp_compiler: cl
+          #- os: windows-latest
+            #cpp_compiler: g++
+          #- os: windows-latest
+            #cpp_compiler: clang++
 
     steps:
     - uses: actions/checkout@v4
