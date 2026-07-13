@@ -44,7 +44,7 @@ R"({1}Command:{0}
 {1}Summary:{0}
   Create a new gojo project in the current directory. A name arguemnt
   is required. If no options are supplied, a default C++ project is
-  created. The settings for a deafult C++ project can be found in the
+  created. The settings for a default C++ project can be found in the
   'gojo info' command.
 
 {1}Arguments:{0}
@@ -261,7 +261,7 @@ R"({1}Command:{0}
 
 {1}Summary:{0}
   Install and build dependencies in both debug and release mode. They are
-  built in both modes to allow seamless swwitching between build types in
+  built in both modes to allow seamless switching between build types in
   the project without having to rebuild upon a switch. This command is
   necessary if dependencies have been added or removed from the dependency
   list in either the conanfile.py or vcpkg files. This command has no effect

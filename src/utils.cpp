@@ -4,10 +4,11 @@
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
-#include <cstdlib>
 #include <format>
 #include <print>
+#ifdef __APPLE__
 #include <_stdio.h>
+#endif
 #include <string>
 #include <string_view>
 
@@ -27,7 +28,7 @@ CommandResult execute_command(std::string& cmd,
 
   // For whatever reason the windows version of these functions
   // start with an underscore? God I hate windows.
-  #if defined (_WIN32) || (_WIN64)
+  #if defined (_WIN32) || defined (_WIN64)
     FILE* pipe = _popen(cmd.c_str(), "r");
   #else
     FILE* pipe = popen(cmd.c_str(), "r");
@@ -52,7 +53,7 @@ CommandResult execute_command(std::string& cmd,
     }
   }
 
-  #if defined (_WIN32) || (_WIN64)
+  #if defined (_WIN32) || defined (_WIN64)
     const int rc = _pclose(pipe);
   #else
     const int rc = pclose(pipe);
@@ -80,13 +81,13 @@ std::string to_upper(std::string_view str) {
 
 
 std::string to_lower(std::string_view str) {
-  std::string upper {};
+  std::string lower {};
   for (const char c : str) {
-    upper.push_back(
+    lower.push_back(
       static_cast<char>(std::tolower(static_cast<int>(c)))
     );
   }
-  return upper;
+  return lower;
 }
 
 

@@ -310,7 +310,7 @@ config::GojoConfig init_interactive() {
   if (!cfg.is_library) {
     std::print(MAGENTA("Enter the main executable name: "));
     // Read in any extra whitespace the user may have entered.
-    std::getline(std::cin >> std::ws, cfg.project_name);
+    std::getline(std::cin >> std::ws, cfg.executable_name);
   }
 
   while (!success) {
@@ -463,7 +463,7 @@ config::GojoConfig init_interactive() {
     std::cin >> char_choice;
     switch (char_choice) {
       case 'y':
-        cfg.gnu_extensions = true;;
+        cfg.gnu_extensions = true;
         success = true;
         break;
       case 'n':
@@ -968,7 +968,7 @@ std::optional<std::string> init(std::span<std::string_view> args) {
     std::string cmd { "git init" };
     auto git_result { utils::execute_command(cmd) };
     if (!git_result.success) {
-      return std::make_optional("failed to initialize git repoistory");
+      return std::make_optional("failed to initialize git repository");
     }
   }
 
@@ -1250,15 +1250,9 @@ std::optional<std::string> clean(std::span<std::string_view> args) {
 
 std::optional<std::string> fmt(std::span<std::string_view> args) {
   std::string fmt_args { "-style=file -i" };
-  std::string style {};
 
   for (const auto arg : args) {
-    if (arg.starts_with("--style=")) {
-      // Length of "--style="
-      constexpr std::size_t style_arg_len { 8 };
-      style = arg.substr(style_arg_len);
-    }
-    else if (arg == "--help") {
+    if (arg == "--help") {
       std::println(literals::FMT_HELP,
                    utils::CLEAR,
                    utils::MAGENTA_BOLD,
@@ -1280,6 +1274,8 @@ std::optional<std::string> fmt(std::span<std::string_view> args) {
 
   config::GojoConfig cfg { std::move(result.value()) };
 
+  // TODO: Write command option to change style
+  /*
   if (!style.empty()) {
     std::string cmd {
       std::format("clang-format -style={} -dump-config > .clang-format", style)
@@ -1294,6 +1290,7 @@ std::optional<std::string> fmt(std::span<std::string_view> args) {
     cfg.fmt_style = style;
     config::write_to_file(cfg);
   }
+  */
 
   constexpr std::string_view fmt_str {
     "find {} "
@@ -1409,7 +1406,7 @@ std::optional<std::string> check(std::span<std::string_view> args) {
 
   if (cfg.cppcheck_enabled) {
     int lang_standard { cfg.lang_standard };
-    std::string_view lang {};
+    std::string_view lang { utils::to_lower(cfg.project_lang) };
     if (cfg.project_lang == "C++" && cfg.lang_standard > utils::STD20) {
       lang_standard = utils::STD20;
       lang = "c++";
