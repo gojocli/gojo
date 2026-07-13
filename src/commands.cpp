@@ -208,11 +208,15 @@ std::optional<std::string> write_to_files(const config::GojoConfig& cfg) {
 
   if (cfg.fmt_style != "custom") {
     std::filesystem::current_path(cfg.project_root);
-    std::string command {
+    const std::string cmd {
       std::format("clang-format -style={} -dump-config", cfg.fmt_style)
     };
-    files.clang_format << utils::execute_command(command, true, true).output
-                       << std::flush;
+
+    auto dump_result { utils::execute_command(cmd, true) };
+    if (!dump_result.success) {
+      return std::make_optional(std::move(dump_result.output));
+    }
+    files.clang_format << dump_result.output << std::flush;
   }
 
   if (cfg.clangd_enabled) {
@@ -965,7 +969,7 @@ std::optional<std::string> init(std::span<std::string_view> args) {
 
   if (cfg.git_repo) {
     std::filesystem::current_path(cfg.project_root);
-    std::string cmd { "git init" };
+    const std::string cmd { "git init" };
     auto git_result { utils::execute_command(cmd) };
     if (!git_result.success) {
       return std::make_optional("failed to initialize git repository");
@@ -1181,7 +1185,7 @@ std::optional<std::string> test(std::span<std::string_view> args) {
   }
 
   std::filesystem::current_path(build);
-  std::string cmd {
+  const std::string cmd {
     std::format("ctest {} {}", build_type, target)
   };
   auto cmd_result { utils::execute_command(cmd) };
@@ -1298,7 +1302,7 @@ std::optional<std::string> fmt(std::span<std::string_view> args) {
     "-iname '*.{}' "
     "| xargs clang-format {}"
   };
-  std::string cmd {
+  const std::string cmd {
     std::format(fmt_str,
                 cfg.project_root,  // {0}
                 cfg.hdr_ext,       // {1}
@@ -1390,7 +1394,7 @@ std::optional<std::string> check(std::span<std::string_view> args) {
       "{2} "
       "{3}"
     };
-    std::string cmd {
+    const std::string cmd {
       std::format(cmd_str,
                   build.string(),      // {0}
                   num_cores,           // {1}
@@ -1398,7 +1402,7 @@ std::optional<std::string> check(std::span<std::string_view> args) {
                   cfg.clang_tidy_args) // {3}
     };
     std::filesystem::current_path(cfg.project_root);
-    auto cmd_result { utils::execute_command(cmd, true, !verbose) };
+    auto cmd_result { utils::execute_command(cmd, !verbose) };
     if (!cmd_result.success) {
       return std::make_optional("failed clang-tidy checks");
     }
@@ -1424,7 +1428,7 @@ std::optional<std::string> check(std::span<std::string_view> args) {
       "--enable={4} "
       "{5}"
     };
-    std::string cmd {
+    const std::string cmd {
       std::format(cmd_str,
                   build.string(),      // {0}
                   num_cores,           // {1}
@@ -1434,7 +1438,7 @@ std::optional<std::string> check(std::span<std::string_view> args) {
                   cfg.cppcheck_args)   // {5}
     };
     std::filesystem::current_path(cfg.project_root);
-    auto cmd_result { utils::execute_command(cmd, true, verbose) };
+    auto cmd_result { utils::execute_command(cmd, verbose) };
     if (!cmd_result.success) {
       return std::make_optional("failed cppcheck checks");
     }
