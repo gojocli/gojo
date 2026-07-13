@@ -36,8 +36,7 @@ struct CommandResult {
 };
 
 
-CommandResult execute_command(std::string& cmd,
-                              bool capture_err=true,
+CommandResult execute_command(const std::string& cmd,
                               bool capture_output=false);
 
 

@@ -7,29 +7,30 @@
 
 
 TEST(UtilsTest, ExecuteCommand) {
-  std::string cmd { "ls" };
+  const std::string cmd { "ls" };
 
   const auto result1 { utils::execute_command(cmd) };
   EXPECT_TRUE(result1.output.empty());
   EXPECT_TRUE(result1.success);
 
-  const auto result2 { utils::execute_command(cmd, true, true) };
+  const auto result2 { utils::execute_command(cmd, true) };
   EXPECT_FALSE(result2.output.empty());
   EXPECT_TRUE(result2.success);
 
-  std::string bad_cmd { "bad-cmd" };
+  const std::string bad_cmd { "bad-cmd" };
 
   const auto result3 { utils::execute_command(bad_cmd) };
   EXPECT_TRUE(result3.output.empty());
   EXPECT_FALSE(result3.success);
 
-  const auto result4 { utils::execute_command(bad_cmd, false, true) };
+  const auto result4 { utils::execute_command(bad_cmd, true) };
   EXPECT_FALSE(result4.output.empty());
   EXPECT_FALSE(result4.success);
 
-  const auto result5 { utils::execute_command(bad_cmd, true, true) };
+  const auto result5 { utils::execute_command(bad_cmd, true) };
   EXPECT_FALSE(result5.output.empty());
   EXPECT_FALSE(result5.success);
+
 }
 
 

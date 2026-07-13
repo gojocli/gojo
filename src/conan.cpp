@@ -28,7 +28,7 @@ std::optional<std::string> setup_profiles(const config::GojoConfig& cfg) {
     std::format("{}/{}/default", utils::get_home_dir(), PROFILES)
   };
   if (!std::filesystem::exists(default_profile)) {
-    std::string cmd { "conan profile detect --force" };
+    const std::string cmd { "conan profile detect --force" };
     const auto result { utils::execute_command(cmd) };
     if (!result.success) {
       return std::make_optional("failed to detect conan profile");
@@ -54,8 +54,8 @@ std::optional<std::string> setup_profiles(const config::GojoConfig& cfg) {
 
 
 std::optional<std::string> get_compiler_version(std::string_view compiler) {
-  std::string cmd { std::format("{} -dumpversion", compiler) };
-  auto result { utils::execute_command(cmd, true, true) };
+  const std::string cmd { std::format("{} -dumpversion", compiler) };
+  auto result { utils::execute_command(cmd, true) };
   if (!result.success) {
     return std::nullopt;
   }
@@ -97,8 +97,12 @@ std::optional<std::string> install(const config::GojoConfig& cfg) {
   // In order to download the packages in debug and release mode, we have
   // to install two times, one, for each build type.
   // Kinda sucks...
-  std::string cmd_dbg { std::format(cmd_str, cfg.project_name, "Debug") };
-  std::string cmd_rel { std::format(cmd_str, cfg.project_name, "Release") };
+  const std::string cmd_dbg {
+    std::format(cmd_str, cfg.project_name, "Debug")
+  };
+  const std::string cmd_rel {
+    std::format(cmd_str, cfg.project_name, "Release")
+  };
 
   std::println(MAGENTA("Installing conan dependencies...\n"));
   std::fflush(stdout);

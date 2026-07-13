@@ -65,7 +65,7 @@ std::optional<std::string> configure(const config::GojoConfig& cfg,
     "-DBUILD_TESTING={} "
     "{}"
   };
-  std::string cmd { std::format(cmdstr,
+  const std::string cmd { std::format(cmdstr,
     fresh_build, build_dir, generator, compiler,
     lang, cfg.lang_standard,
     lang,
@@ -109,7 +109,7 @@ std::optional<std::string> build(const config::GojoConfig& cfg,
     build_dir = "build";
   }
 
-  std::string cmd { 
+  const std::string cmd { 
     std::format("cmake --build {} {} {} --parallel {}",
                 build_dir,
                 config,
@@ -146,7 +146,7 @@ std::optional<std::string> clean(const config::GojoConfig& cfg, bool deep) {
     return cmake::configure(cfg, true);
   }
     
-  std::string cmd { "cmake --build build --target clean" };
+  const std::string cmd { "cmake --build build --target clean" };
   std::filesystem::current_path(cfg.project_root);
   auto result { utils::execute_command(cmd) };
   if (!result.success) {
