@@ -25,8 +25,8 @@ constexpr std::array<std::string_view, 5> STDS_CPP      { "11", "14", "17", "20"
 constexpr std::array<std::string_view, 4> STDS_C        { "99", "11", "17", "23" };
 constexpr std::array<std::string_view, 3> COMPILERS_CPP { "system default", "clang++", "g++" };
 constexpr std::array<std::string_view, 3> COMPILERS_C   { "system default", "clang", "gcc" };
-constexpr std::array<std::string_view, 1> BUILD_SYSTEMS { "CMake" };
-constexpr std::array<std::string_view, 26> GENERATORS {
+constexpr std::array<std::string_view, 1> BUILD_SYSTEMS { /*"Meson",*/ "CMake" };  // TODO: Add support for Meson
+constexpr std::array<std::string_view, 13> GENERATORS {
   // Unix Makefiles for Linux, MacOS, Visual Studio X for Windows
   "system default",
 
@@ -46,7 +46,9 @@ constexpr std::array<std::string_view, 26> GENERATORS {
   // FASTBuild (??)
   "FASTBuild",
 
+  // TODO: Add support for windows.
   // Visual Studio
+  /*
   "Visual Studio 6",
   "Visual Studio 7",
   "Visual Studio 7 .NET 2003",
@@ -60,6 +62,7 @@ constexpr std::array<std::string_view, 26> GENERATORS {
   "Visual Studio 16 2019",
   "Visual Studio 17 2022",
   "Visual Studio 18 2026",
+  */
 
   // XCode
   "XCode",
@@ -69,7 +72,7 @@ constexpr std::array<std::string_view, 26> GENERATORS {
 };
 
 constexpr std::array<std::string_view, 2> BUILD_TYPES  { "Debug", "Release" };
-constexpr std::array<std::string_view, 3> PKG_MANAGERS { "conan", "vcpkg", "none" };
+constexpr std::array<std::string_view, 3> PKG_MANAGERS { "conan", /*"vcpkg",*/ "none" };  // TODO: Add support for vcpkg
 constexpr std::array<std::string_view, 4> SRC_EXTS_CPP { "cpp", "cc", "cxx", "c++" };
 constexpr std::array<std::string_view, 1> SRC_EXTS_C   { "c" };
 constexpr std::array<std::string_view, 4> HDR_EXTS_CPP { "hpp", "h", "hxx", "h++" };
@@ -249,15 +252,17 @@ bool is_multi_config(std::string_view generator) {
   if (generator.starts_with("Visual Studio")) {
     return true;
   }
+  // TODO: Add support for windows.
+  /*
   if (generator == "system default") {
     // Windows visual studio defaults to using a multi-config
     // setup. Apple does not default to XCode, but rather Makefiles.
-    #if defined (_WIN32) || (_WIN64)
+    #if defined (_WIN32) || defined (_WIN64)
       return true;
     #else
       return false;
     #endif
-  }
+  }*/
   return false;
 }
 

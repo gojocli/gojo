@@ -28,11 +28,15 @@ CommandResult execute_command(std::string& cmd,
 
   // For whatever reason the windows version of these functions
   // start with an underscore? God I hate windows.
+  // TODO: Add support for windows.
+  /*
   #if defined (_WIN32) || defined (_WIN64)
     FILE* pipe = _popen(cmd.c_str(), "r");
   #else
     FILE* pipe = popen(cmd.c_str(), "r");
   #endif
+  */
+  FILE* pipe = popen(cmd.c_str(), "r");
 
   if (!pipe) {
     return CommandResult { .output={}, .success=false };
@@ -53,11 +57,15 @@ CommandResult execute_command(std::string& cmd,
     }
   }
 
+  // TODO: Add support for windows.
+  /*
   #if defined (_WIN32) || defined (_WIN64)
     const int rc = _pclose(pipe);
   #else
     const int rc = pclose(pipe);
   #endif
+  */
+  const int rc = pclose(pipe);
 
   if (rc != EXIT_SUCCESS) {
     return CommandResult { .output=output, .success=false };
