@@ -212,7 +212,7 @@ std::optional<std::string> write_profile(const Profile& profile,
   // compilers, though they refer to the C++ versions (g++ and clang++)
   // when compiling C++ libraries.
   std::string_view compiler { profile.compiler };
-  std::string_view compiler_version { profile.compiler_version };
+  std::string compiler_version { profile.compiler_version };
 
   // Yeah there's some repetition here but I think it's better than two
   // nested if branches.

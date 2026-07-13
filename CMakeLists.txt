@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.3.4)
+cmake_minimum_required(VERSION 3.31.6...4.4.0)
 
 project(
   gojo
@@ -9,4 +9,7 @@ project(
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(src)
-add_subdirectory(test)
+
+if (BUILD_TESTING)
+  add_subdirectory(test)
+endif()
