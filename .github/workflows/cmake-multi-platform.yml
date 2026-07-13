@@ -31,7 +31,9 @@ jobs:
         build_type: [Release]
         include:
           - os: ubuntu-latest
+            compiler: g++-14
           - os: macos-latest
+            compiler: clang++
         exclude:
           # TODO: Add Windows support
           - os: windows-latest
@@ -45,6 +47,12 @@ jobs:
       shell: bash
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: install updated gcc
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt update
+        sudo apt install -y g++-14
 
     - name: Set up conan client
       uses: conan-io/setup-conan@v1
@@ -64,11 +72,13 @@ jobs:
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}
         -DCMAKE_CXX_STANDARD=23
         -DCMAKE_CXX_STANDARD_REQUIRED=ON
         -DCMAKE_CXX_FLAGS="-Wall -Wextra -Wconversion -Wshadow -fno-exceptions"
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DCMAKE_TOOLCHAIN_FILE=deps/build/Release/generators/conan_toolchain.cmake
+        -DBUILD_TESTING=ON
         -S ${{ github.workspace }}
 
     - name: Build
@@ -76,7 +86,7 @@ jobs:
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
     - name: Test
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}/test
       # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --build-config ${{ matrix.build_type }}
