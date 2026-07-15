@@ -1705,7 +1705,12 @@ std::optional<std::string> profile(std::span<std::string_view> args) {
 
 
 void info() {
-  std::println("Oops...forgot about this one...");
+  std::println(literals::INFO,
+               utils::CLEAR,
+               utils::MAGENTA_BOLD,
+               utils::MAGENTA,
+               utils::YELLOW,
+               utils::CYAN);
 }
 
 

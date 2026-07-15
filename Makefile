@@ -23,6 +23,10 @@ fmt:
 check:
 	@run-clang-tidy -p build/Debug
 
+install:
+	@conan install . --deployer=full_deploy --output-folder=./deps --build=missing --profile=gojo -s build_type=Release
+	@conan install . --deployer=full_deploy --output-folder=./deps --build=missing --profile=gojo -s build_type=Debug
+
 clean:
 	@rm -rf build
 	@mkdir -p build

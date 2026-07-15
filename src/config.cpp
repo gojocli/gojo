@@ -71,7 +71,7 @@ constexpr std::array<std::string_view, 13> GENERATORS {
   "Green Hills MULTI"
 };
 
-constexpr std::array<std::string_view, 2> BUILD_TYPES  { "Debug", "Release" };
+constexpr std::array<std::string_view, 4> BUILD_TYPES  { "Debug", "Release", "RelWithDebInfo", "MinSizeRel" };
 constexpr std::array<std::string_view, 3> PKG_MANAGERS { "conan", /*"vcpkg",*/ "none" };  // TODO: Add support for vcpkg
 constexpr std::array<std::string_view, 4> SRC_EXTS_CPP { "cpp", "cc", "cxx", "c++" };
 constexpr std::array<std::string_view, 1> SRC_EXTS_C   { "c" };
@@ -96,11 +96,11 @@ constexpr std::array<std::string_view, 2> TRUE_FALSE { "true", "false" };
 constexpr std::string_view PROJECT_NAME   { "project name" };
 constexpr std::string_view PROJECT_TARGET { "project target" };
 constexpr std::string_view PROJECT_ROOT   { "project root directory" };
+constexpr std::string_view EXE_NAME       { "executable name" };
 constexpr std::string_view PROJECT_LANG   { "project language" };
-constexpr std::string_view EXE_NAME       { "main executable name" };
 constexpr std::string_view LANG_STD       { "language standard" };
 constexpr std::string_view GNU_EXTENSIONS { "GNU extensions enabled" };
-constexpr std::string_view COMPILER       { "current compiler" };
+constexpr std::string_view COMPILER       { "compiler" };
 constexpr std::string_view CFLAGS         { "compiler flags" };
 constexpr std::string_view BUILD_SYS      { "build system" };
 constexpr std::string_view GENERATOR      { "generator" };
@@ -125,8 +125,9 @@ constexpr std::string_view GIT            { "git repository" };
 // and field.
 constexpr std::string_view cfg_file_template {
 R"(---
-# Gojo config file
-# See <insert_link_here> for more info.
+# gojo config file
+# Run 'gojo info' to learn more about this file.
+# See https://github.com/gojocli/gojo for more info.
 
 {}={}
 
@@ -163,7 +164,7 @@ R"(---
 # Depends on generator defined above. Do not manually edit.
 {}={}
 
-# Options: Debug, Release
+# Options: Debug, Release, RelWithDebInfo, MinSizeRel
 {}={}
 
 # Options: none, conan, vcpkg
