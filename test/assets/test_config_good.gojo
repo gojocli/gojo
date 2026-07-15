@@ -9,10 +9,10 @@ project target=binary
 
 project root directory=.
 
+executable name=example
+
 # Options: C, C++
 project language=C++
-
-main executable name=example
 
 # Options   (C): 99, 11, 17, 23
 # Options (C++): 11, 14, 17, 20, 23
@@ -23,7 +23,7 @@ GNU extensions enabled=true
 
 # Options   (C): system default, clang, gcc
 # Options (C++): system default, clang++, g++
-current compiler=system default
+compiler=system default
 
 compiler flags=-Wall -Werror
 
