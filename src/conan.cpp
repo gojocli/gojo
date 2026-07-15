@@ -22,37 +22,6 @@ namespace {
 constexpr std::string_view PROFILES = ".conan2/profiles";
 
 
-std::optional<std::string> setup_profiles(const config::GojoConfig& cfg) {
-  // Check for conan profile
-  const std::filesystem::path default_profile {
-    std::format("{}/{}/default", utils::get_home_dir(), PROFILES)
-  };
-  if (!std::filesystem::exists(default_profile)) {
-    const std::string cmd { "conan profile detect --force" };
-    const auto result { utils::execute_command(cmd) };
-    if (!result.success) {
-      return std::make_optional("failed to detect conan profile");
-    }
-  }
-
-  auto read_result { conan::read_profile("default") };
-  if (!read_result.has_value()) {
-    return std::make_optional(std::move(read_result.error()));
-  }
-
-  // Read default profile and create new profile based on a combination
-  // of the default and the GojoConfig, ensuring the same compiler,
-  // build mode, and language standard are used for both.
-  const conan::Profile profile { read_result.value() };
-  auto write_result { write_profile(profile, cfg) };
-  if (write_result.has_value()) {
-    return write_result;
-  }
-
-  return std::nullopt;
-}
-
-
 std::optional<std::string> get_compiler_version(std::string_view compiler) {
   const std::string cmd { std::format("{} -dumpversion", compiler) };
   auto result { utils::execute_command(cmd, true) };
@@ -70,69 +39,8 @@ std::optional<std::string> get_compiler_version(std::string_view compiler) {
   return result.output.substr(0, idx);
 }
 
-}  // namespace
 
-namespace conan {
-
-std::optional<std::string> install(const config::GojoConfig& cfg) {
-  const std::filesystem::path profile_file {
-    std::format("{}/{}/{}", utils::get_home_dir(), PROFILES, cfg.project_name)
-  };
-  if (!std::filesystem::exists(profile_file)) {
-    auto result { setup_profiles(cfg) };
-    if (result.has_value()) {
-      return result;
-    }
-  }
-
-  constexpr std::string_view cmd_str { 
-    "conan install . "
-    "--deployer=full_deploy "
-    "--output-folder=./deps "
-    "--build=missing "
-    "--profile={} "
-    "-s build_type={}"
-  };
-
-  // In order to download the packages in debug and release mode, we have
-  // to install two times, one, for each build type.
-  // Kinda sucks...
-  const std::string cmd_dbg {
-    std::format(cmd_str, cfg.project_name, "Debug")
-  };
-  const std::string cmd_rel {
-    std::format(cmd_str, cfg.project_name, "Release")
-  };
-
-  std::println(MAGENTA("Installing conan dependencies...\n"));
-  std::fflush(stdout);
-
-  std::filesystem::current_path(cfg.project_root);
-  auto dbg_result { utils::execute_command(cmd_dbg) };
-  if (!dbg_result.success) {
-    return std::make_optional("failed to install conan dependencies");
-  }
-
-  auto rel_result { utils::execute_command(cmd_rel) };
-  if (!rel_result.success) {
-    return std::make_optional("failed to install conan dependencies");
-  }
-
-  std::fflush(stdout);
-  std::println(GREEN("\nDependencies installed successfully"));
-  std::println(
-    MAGENTA(
-      "\nAdd the following line to your CMakeLists.txt"
-      " in the root of the project:"
-    )
-  );
-  std::println(CYAN("\tfind_package(<package_name> REQUIRED)"));
-  std::println(MAGENTA("for each package installed."));
-  return std::nullopt;
-}
-
-
-std::expected<Profile, std::string>
+std::expected<conan::Profile, std::string>
 read_profile(std::string_view profile_name) {
   const std::filesystem::path profile_file {
     std::format("{}/{}/{}", utils::get_home_dir(), PROFILES, profile_name)
@@ -150,7 +58,7 @@ read_profile(std::string_view profile_name) {
     };
   }
 
-  Profile profile {};
+  conan::Profile profile {};
   std::string line {};
   std::string label {};
   std::string other_settings {};
@@ -199,7 +107,7 @@ read_profile(std::string_view profile_name) {
 }
 
 
-std::optional<std::string> write_profile(const Profile& profile,
+std::optional<std::string> write_profile(const conan::Profile& profile,
                                          const config::GojoConfig& cfg) {
   const std::filesystem::path profile_file {
     std::format("{}/{}/{}", utils::get_home_dir(), PROFILES, cfg.project_name)
@@ -272,6 +180,99 @@ os={7}
 
   profile_stream << updated_profile << std::flush;
 
+  return std::nullopt;
+}
+
+
+std::optional<std::string> setup_profiles(const config::GojoConfig& cfg) {
+  // Check for conan profile
+  const std::filesystem::path default_profile {
+    std::format("{}/{}/default", utils::get_home_dir(), PROFILES)
+  };
+  if (!std::filesystem::exists(default_profile)) {
+    const std::string cmd { "conan profile detect --force" };
+    const auto result { utils::execute_command(cmd) };
+    if (!result.success) {
+      return std::make_optional("failed to detect conan profile");
+    }
+  }
+
+  auto read_result { read_profile("default") };
+  if (!read_result.has_value()) {
+    return std::make_optional(std::move(read_result.error()));
+  }
+
+  // Read default profile and create new profile based on a combination
+  // of the default and the GojoConfig, ensuring the same compiler,
+  // build mode, and language standard are used for both.
+  const conan::Profile profile { read_result.value() };
+  auto write_result { write_profile(profile, cfg) };
+  if (write_result.has_value()) {
+    return write_result;
+  }
+
+  return std::nullopt;
+}
+
+}  // namespace
+
+
+namespace conan {
+
+std::optional<std::string> install(const config::GojoConfig& cfg) {
+  const std::filesystem::path profile_file {
+    std::format("{}/{}/{}", utils::get_home_dir(), PROFILES, cfg.project_name)
+  };
+  if (!std::filesystem::exists(profile_file)) {
+    auto result { setup_profiles(cfg) };
+    if (result.has_value()) {
+      return result;
+    }
+  }
+
+  constexpr std::string_view cmd_str { 
+    "conan install . "
+    "--deployer=full_deploy "
+    "--output-folder=./deps "
+    "--build=missing "
+    "--profile={} "
+    "-s build_type={}"
+  };
+
+  // In order to download the packages in debug and release mode, we have
+  // to install two times, one, for each build type.
+  // Kinda sucks...
+  const std::string cmd_dbg {
+    std::format(cmd_str, cfg.project_name, "Debug")
+  };
+  const std::string cmd_rel {
+    std::format(cmd_str, cfg.project_name, "Release")
+  };
+
+  std::println(MAGENTA("Installing conan dependencies...\n"));
+  std::fflush(stdout);
+
+  std::filesystem::current_path(cfg.project_root);
+  auto dbg_result { utils::execute_command(cmd_dbg) };
+  if (!dbg_result.success) {
+    return std::make_optional("failed to install conan dependencies");
+  }
+
+  auto rel_result { utils::execute_command(cmd_rel) };
+  if (!rel_result.success) {
+    return std::make_optional("failed to install conan dependencies");
+  }
+
+  std::fflush(stdout);
+  std::println(GREEN("\nDependencies installed successfully"));
+  std::println(
+    MAGENTA(
+      "\nAdd the following line to your CMakeLists.txt"
+      " in the root of the project:"
+    )
+  );
+  std::println(CYAN("\tfind_package(<package_name> REQUIRED)"));
+  std::println(MAGENTA("for each package installed."));
   return std::nullopt;
 }
 

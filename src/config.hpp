@@ -1,3 +1,11 @@
+/// @file      src/config.hpp
+/// @brief     Functionality for creating, reading, and writing gojo config
+///            files and gojo profiles.
+/// @author    William Huffman (whuffman36)
+/// @date      2026
+/// @copyright MIT License
+
+
 #ifndef GOJO_SRC_CONFIG_HPP
 #define GOJO_SRC_CONFIG_HPP
 
@@ -10,6 +18,7 @@
 
 namespace config {
 
+/// @brief Represents a gojo config file.
 struct GojoConfig {
   std::string project_name;
   std::string project_root;
@@ -70,27 +79,57 @@ const GojoConfig DEFAULT = {
 };
 
 
+/// @brief Returns true if the project's meta build system is using a multi-
+///        config generator.
+/// @param generator Generator used by the project's meta build system.
+/// @returns True if `generator` is multi-config.
 bool is_multi_config(std::string_view generator);
 
 
+/// @brief Read a gojo config file into a usable `GojoConfig` object.
+/// @details This function can fail if the file is not found or if there is a
+///          sytax error in the gojo config file.
+/// @param cfg_file Path to the gojo config file to be read.
+/// @returns `GojoConfig` object on success, an error message on failure.
 std::expected<GojoConfig, std::string>
 read_from_file(const std::filesystem::path& cfg_file);
 
 
+/// @brief Write a `GojoConfig` object to a gojo config file.
+/// @details This function can fail if `file` is not found or cannot be
+///          written to.
+/// @param cfg `GojoConfig` object to be written from.
+/// @param file Path of the file to be written to.
+/// @returns std::nullopt on success, an error message on failure.
 std::optional<std::string> write_to_file(const GojoConfig& cfg,
                                          const std::filesystem::path& file={});
 
 
+/// @brief Create an empty gojo config file template.
+/// @details This function can fail if `project_root` is not found or cannot
+///          be written to.
+/// @param project_root Path of the file to be written to.
+/// @returns std::nullopt on success, an error message on failure.
 std::optional<std::string>
 create_template(const std::filesystem::path& project_root);
 
 
+/// @brief Create a gojo profile using the current project's gojo config file.
+/// @details This function can fail if ~/.gojocli/profiles/ does not exist or
+///          cannot be written to. If a gojo profile with name `profile_name`
+///          already exists, that profile is overwritten.
+/// @param profile_name Name of the profile to be created or overwritten.
+/// @returns std::nullopt on success, an error message on failure.
 std::optional<std::string> create_profile(std::string_view profile_name);
 
 
+/// @brief Read a gojo profile into a usable `GojoConfig` object.
+/// @details This function can fail if the profile is not found or if there is
+///          a sytax error in the gojo profile.
+/// @param profile_name Name of the profile to be read.
+/// @returns `GojoConfig` object on success, an error message on failure.
 std::expected<GojoConfig, std::string>
 read_profile(std::string_view profile_name);
-
 
 }  // namespace config
 
