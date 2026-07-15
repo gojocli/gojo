@@ -1471,6 +1471,7 @@ std::optional<std::string> file_template(std::span<std::string_view> args) {
 
 std::optional<std::string> refresh(std::span<std::string_view> args,
                                    std::optional<config::GojoConfig> cfg_in) {
+  std::string_view profile {};
   for (const auto arg : args) {
     if (arg == "--help") {
       std::println(literals::REFRESH_HELP,
@@ -1480,6 +1481,11 @@ std::optional<std::string> refresh(std::span<std::string_view> args,
                    utils::YELLOW,
                    utils::CYAN);
       return std::nullopt;
+    }
+    else if (arg.starts_with("--profile=")) {
+      // length of "--profile=".
+      constexpr std::size_t profile_arg_len { 10 };
+      profile = arg.substr(profile_arg_len);
     }
     else {
       return std::make_optional(
@@ -1497,11 +1503,36 @@ std::optional<std::string> refresh(std::span<std::string_view> args,
     reconfigure = false;
   }
   else {
-    auto result { config::read_from_file(CONFIG_FILE) };
-    if (!result.has_value()) {
-      return std::make_optional(std::move(result.error()));
+    if (!profile.empty()) {
+      auto result { config::read_profile(profile) };
+      if (!result.has_value()) {
+        if (result.error().starts_with("file not found")) {
+          return std::make_optional(
+            std::format("gojo init: no profile with name '{}'", profile)
+          );
+        }
+        return std::make_optional(std::move(result.error()));
+      }
+
+      std::string project_name { cfg.project_name };
+      std::string project_root { cfg.project_root };
+      std::string executable_name { cfg.executable_name };
+
+      clean_build_dir(cfg);
+      reconfigure = false;
+
+      cfg = std::move(result.value());
+      cfg.project_name = std::move(project_name);
+      cfg.project_root = std::move(project_root);
+      cfg.executable_name = std::move(executable_name);
     }
-    cfg = std::move(result.value());
+    else {
+      auto result { config::read_from_file(CONFIG_FILE) };
+      if (!result.has_value()) {
+        return std::make_optional(std::move(result.error()));
+      }
+      cfg = std::move(result.value());
+    }
   }
 
   if (cfg.build_system == "CMake") {
@@ -1510,15 +1541,13 @@ std::optional<std::string> refresh(std::span<std::string_view> args,
     if (cfg_result.has_value()) {
       return cfg_result;
     }
-
-    return config::write_to_file(cfg);
   }
 
   if (cfg.build_system == "Meson") {
     // TODO: Implement Meson
   }
 
-  return std::nullopt;
+  return config::write_to_file(cfg);
 }
 
 
